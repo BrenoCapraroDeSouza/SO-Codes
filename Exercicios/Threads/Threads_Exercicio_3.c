@@ -11,23 +11,30 @@
 #include <unistd.h> 
 #include <pthread.h> 
 
-
+#define COUNT_READ 100
 int contadorGlobal = 0;
+
+pthread_mutex_t exclusao_mutua = PTHREAD_MUTEX_INITIALIZER;
 
 
 void *contarAteCem(void *arg){
     int threadID = *(int*)arg;
     int contadorLocal = 0;
-    while(contadorGlobal<100){
-        contadorGlobal++;
+    while(1){
         contadorLocal++;
+        pthread_mutex_lock( &exclusao_mutua);
+        if(contadorGlobal<COUNT_READ){
+            contadorGlobal++;
+            pthread_mutex_unlock( &exclusao_mutua);
+        }else {
+            pthread_exit(0);
+        }
 
         sleep(1);
 
         printf("Thread %d - Local: %d\n", threadID, contadorLocal);
         printf("Thread %d - Global: %d\n", threadID, contadorGlobal);
     }
-    pthread_exit(0);
 }
 
 
